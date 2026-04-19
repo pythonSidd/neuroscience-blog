@@ -10,22 +10,17 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Check if this is an admin request
     const isAdmin = verifyAdminToken(request);
-    const includeAll = !!isAdmin; // If admin, include all posts (draft, published, archived)
+    const includeAll = !!isAdmin;
 
-    const posts = blogDb.getAll(limit, offset, category || undefined, includeAll);
-    const total = isAdmin 
-      ? blogDb.count('draft') + blogDb.count('published') + blogDb.count('archived')
-      : blogDb.count('published');
+    const posts = await blogDb.getAll(limit, offset, category, includeAll);
+    const total = isAdmin
+      ? (await blogDb.count('draft')) + (await blogDb.count('published')) + (await blogDb.count('archived'))
+      : await blogDb.count('published');
 
     return NextResponse.json({
       posts,
-      pagination: {
-        total,
-        limit,
-        offset,
-      },
+      pagination: { total, limit, offset },
     });
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -40,10 +35,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = verifyAdminToken(request);
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -57,12 +49,10 @@ export async function POST(request: NextRequest) {
     }
 
     const postSlug = slug(title);
-    
-    // Calculate read time (approximately 200 words per minute)
     const wordCount = content.split(/\s+/).length;
     const readTime = Math.ceil(wordCount / 200);
 
-    const postId = blogDb.create({
+    const postId = await blogDb.create({
       title,
       slug: postSlug,
       content,
@@ -76,8 +66,7 @@ export async function POST(request: NextRequest) {
       published_at: status === 'published' ? new Date().toISOString() : undefined,
     });
 
-    const post = blogDb.getById(postId as number);
-
+    const post = await blogDb.getById(postId);
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
     console.error('Error creating post:', error);

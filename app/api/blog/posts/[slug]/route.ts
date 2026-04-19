@@ -7,13 +7,10 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const post = blogDb.getBySlug(params.slug);
-    
+    const post = await blogDb.getBySlug(params.slug);
+
     if (!post) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
     return NextResponse.json(post);
@@ -33,22 +30,16 @@ export async function PATCH(
   try {
     const user = verifyAdminToken(request);
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const post = blogDb.getBySlug(params.slug);
+    const post = await blogDb.getBySlug(params.slug);
     if (!post || !post.id) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
     const body = await request.json();
-    blogDb.update(post.id, {
+    await blogDb.update(post.id, {
       title: body.title,
       content: body.content,
       excerpt: body.excerpt,
@@ -56,10 +47,12 @@ export async function PATCH(
       featured_image_url: body.featured_image_url,
       status: body.status,
       tags: body.tags,
-      published_at: body.status === 'published' && !post.published_at ? new Date().toISOString() : undefined,
+      published_at: body.status === 'published' && !post.published_at
+        ? new Date().toISOString()
+        : undefined,
     });
 
-    const updated = blogDb.getById(post.id);
+    const updated = await blogDb.getById(post.id);
     return NextResponse.json(updated);
   } catch (error) {
     console.error('Error updating post:', error);
@@ -77,21 +70,15 @@ export async function DELETE(
   try {
     const user = verifyAdminToken(request);
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const post = blogDb.getBySlug(params.slug);
+    const post = await blogDb.getBySlug(params.slug);
     if (!post || !post.id) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    blogDb.delete(post.id);
+    await blogDb.delete(post.id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting post:', error);

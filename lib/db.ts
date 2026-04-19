@@ -1,39 +1,9 @@
-// Simple JSON-based database for testing (no native compilation needed)
-import fs from 'fs';
-import path from 'path';
-import { slug as slugify } from 'slug';
+import { createClient } from '@libsql/client';
 
-const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
-
-// Ensure data directory exists
-const dataDir = path.dirname(DB_PATH);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-// Initialize database
-let db: any = {};
-if (fs.existsSync(DB_PATH)) {
-  try {
-    db = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
-  } catch (e) {
-    console.log('Creating new database...');
-  }
-}
-
-// Save database
-function saveDb() {
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
-}
-
-// Initialize tables
-if (!db.blog_posts) db.blog_posts = [];
-if (!db.messaging_ideas) db.messaging_ideas = [];
-if (!db.admin_users) db.admin_users = [];
-if (!db.research_papers) db.research_papers = [];
-if (!db.github_projects) db.github_projects = [];
-
-saveDb();
+const client = createClient({
+  url: process.env.TURSO_CONNECTION_URL!,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
 export interface BlogPost {
   id?: number;
@@ -69,191 +39,193 @@ export interface MessagingIdea {
   published_at?: string;
 }
 
-// Blog Posts CRUD
 export const blogDb = {
-  create: (post: BlogPost) => {
-    const id = Date.now(); // Simple ID generation
-    const newPost = {
-      id,
-      title: post.title,
-      slug: post.slug,
-      content: post.content,
-      excerpt: post.excerpt || '',
-      featured_image_url: post.featured_image_url || '',
-      category: post.category,
-      status: post.status || 'draft',
-      author: post.author || 'Admin',
-      read_time: post.read_time || 5,
-      tags: post.tags || '',
-      created_at: new Date().toISOString(),
-      published_at: post.status === 'published' ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString(),
-    };
-    db.blog_posts.push(newPost);
-    saveDb();
-    return id;
+  create: async (post: BlogPost): Promise<number> => {
+    const now = new Date().toISOString();
+    const result = await client.execute({
+      sql: `INSERT INTO blog_posts
+              (title, slug, content, excerpt, featured_image_url, category, status, author, read_time, tags, created_at, published_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        post.title,
+        post.slug,
+        post.content,
+        post.excerpt || '',
+        post.featured_image_url || '',
+        post.category,
+        post.status || 'draft',
+        post.author || 'Admin',
+        post.read_time || 5,
+        post.tags || '',
+        now,
+        post.status === 'published' ? now : null,
+        now,
+      ],
+    });
+    return Number(result.lastInsertRowid);
   },
 
-  getBySlug: (slug: string): BlogPost | null => {
-    return db.blog_posts.find((post: BlogPost) => post.slug === slug) || null;
+  getBySlug: async (slug: string): Promise<BlogPost | null> => {
+    const result = await client.execute({
+      sql: 'SELECT * FROM blog_posts WHERE slug = ?',
+      args: [slug],
+    });
+    return (result.rows[0] as unknown as BlogPost) || null;
   },
 
-  getAll: (limit: number = 10, offset: number = 0, category?: string, includeAll: boolean = false) => {
-    let posts = includeAll 
-      ? db.blog_posts // For admin: return all posts (draft, published, archived)
-      : db.blog_posts.filter((post: BlogPost) => post.status === 'published'); // For public: only published
+  getAll: async (limit = 10, offset = 0, category?: string, includeAll = false): Promise<BlogPost[]> => {
+    const conditions: string[] = [];
+    const args: (string | number)[] = [];
 
-    if (category) {
-      posts = posts.filter((post: BlogPost) => post.category === category);
+    if (!includeAll) conditions.push("status = 'published'");
+    if (category) { conditions.push('category = ?'); args.push(category); }
+
+    let sql = 'SELECT * FROM blog_posts';
+    if (conditions.length) sql += ' WHERE ' + conditions.join(' AND ');
+    sql += ' ORDER BY COALESCE(published_at, created_at) DESC LIMIT ? OFFSET ?';
+    args.push(limit, offset);
+
+    const result = await client.execute({ sql, args });
+    return result.rows as unknown as BlogPost[];
+  },
+
+  update: async (id: number, updates: Partial<BlogPost>) => {
+    const now = new Date().toISOString();
+    const fields: string[] = [];
+    const args: (string | number | null)[] = [];
+
+    for (const key of ['title', 'slug', 'content', 'excerpt', 'featured_image_url', 'category', 'status', 'tags', 'read_time', 'published_at'] as const) {
+      if (key in updates) {
+        fields.push(`${key} = ?`);
+        args.push((updates as any)[key] ?? null);
+      }
     }
+    fields.push('updated_at = ?');
+    args.push(now, id);
 
-    posts.sort((a: BlogPost, b: BlogPost) =>
-      new Date(b.published_at || b.created_at || '').getTime() - new Date(a.published_at || a.created_at || '').getTime()
-    );
-
-    return posts.slice(offset, offset + limit);
+    await client.execute({ sql: `UPDATE blog_posts SET ${fields.join(', ')} WHERE id = ?`, args });
+    return { changes: 1 };
   },
 
-  update: (id: number, updates: Partial<BlogPost>) => {
-    const index = db.blog_posts.findIndex((post: BlogPost) => post.id === id);
-    if (index !== -1) {
-      db.blog_posts[index] = {
-        ...db.blog_posts[index],
-        ...updates,
-        updated_at: new Date().toISOString(),
-        published_at: updates.status === 'published' && !db.blog_posts[index].published_at
-          ? new Date().toISOString()
-          : db.blog_posts[index].published_at
-      };
-      saveDb();
-      return { changes: 1 };
-    }
-    return { changes: 0 };
+  getById: async (id: number): Promise<BlogPost | null> => {
+    const result = await client.execute({
+      sql: 'SELECT * FROM blog_posts WHERE id = ?',
+      args: [id],
+    });
+    return (result.rows[0] as unknown as BlogPost) || null;
   },
 
-  getById: (id: number): BlogPost | null => {
-    return db.blog_posts.find((post: BlogPost) => post.id === id) || null;
+  delete: async (id: number) => {
+    await client.execute({ sql: 'DELETE FROM blog_posts WHERE id = ?', args: [id] });
+    return { changes: 1 };
   },
 
-  delete: (id: number) => {
-    const index = db.blog_posts.findIndex((post: BlogPost) => post.id === id);
-    if (index !== -1) {
-      db.blog_posts.splice(index, 1);
-      saveDb();
-      return { changes: 1 };
-    }
-    return { changes: 0 };
-  },
-
-  count: (status: string = 'published'): number => {
-    return db.blog_posts.filter((post: BlogPost) => post.status === status).length;
+  count: async (status = 'published'): Promise<number> => {
+    const result = await client.execute({
+      sql: 'SELECT COUNT(*) as count FROM blog_posts WHERE status = ?',
+      args: [status],
+    });
+    return Number((result.rows[0] as any).count);
   },
 };
 
-// Messaging Ideas CRUD
 export const messagingDb = {
-  create: (idea: MessagingIdea) => {
-    const id = Date.now();
-    const newIdea = {
-      id,
-      platform: idea.platform,
-      platform_message_id: idea.platform_message_id || '',
-      sender_id: idea.sender_id,
-      sender_name: idea.sender_name || '',
-      original_message: idea.original_message,
-      status: idea.status || 'pending_ai_generation',
-      ai_generated_title: idea.ai_generated_title || '',
-      ai_generated_content: idea.ai_generated_content || '',
-      admin_notes: idea.admin_notes || '',
-      related_blog_post_id: idea.related_blog_post_id || null,
-      created_at: new Date().toISOString(),
-      processed_at: idea.processed_at || null,
-      published_at: idea.published_at || null,
-    };
-    db.messaging_ideas.push(newIdea);
-    saveDb();
-    return id;
+  create: async (idea: MessagingIdea): Promise<number> => {
+    const now = new Date().toISOString();
+    const result = await client.execute({
+      sql: `INSERT INTO messaging_ideas
+              (platform, platform_message_id, sender_id, sender_name, original_message, status,
+               ai_generated_title, ai_generated_content, admin_notes, related_blog_post_id,
+               created_at, processed_at, published_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        idea.platform,
+        idea.platform_message_id || '',
+        idea.sender_id,
+        idea.sender_name || '',
+        idea.original_message,
+        idea.status || 'pending_ai_generation',
+        idea.ai_generated_title || '',
+        idea.ai_generated_content || '',
+        idea.admin_notes || '',
+        idea.related_blog_post_id || null,
+        now,
+        idea.processed_at || null,
+        idea.published_at || null,
+      ],
+    });
+    return Number(result.lastInsertRowid);
   },
 
-  getById: (id: number): MessagingIdea | null => {
-    return db.messaging_ideas.find((idea: MessagingIdea) => idea.id === id) || null;
+  getById: async (id: number): Promise<MessagingIdea | null> => {
+    const result = await client.execute({
+      sql: 'SELECT * FROM messaging_ideas WHERE id = ?',
+      args: [id],
+    });
+    return (result.rows[0] as unknown as MessagingIdea) || null;
   },
 
-  getPending: (platform?: string) => {
-    let ideas = db.messaging_ideas.filter((idea: MessagingIdea) =>
-      ['pending_ai_generation', 'pending_review'].includes(idea.status)
-    );
+  getPending: async (platform?: string): Promise<MessagingIdea[]> => {
+    const args: string[] = [];
+    let sql = "SELECT * FROM messaging_ideas WHERE status IN ('pending_ai_generation', 'pending_review')";
+    if (platform) { sql += ' AND platform = ?'; args.push(platform); }
+    sql += ' ORDER BY created_at DESC';
+    const result = await client.execute({ sql, args });
+    return result.rows as unknown as MessagingIdea[];
+  },
 
-    if (platform) {
-      ideas = ideas.filter((idea: MessagingIdea) => idea.platform === platform);
+  update: async (id: number, updates: Partial<MessagingIdea>) => {
+    const fields: string[] = [];
+    const args: (string | number | null)[] = [];
+
+    for (const key of ['platform', 'status', 'ai_generated_title', 'ai_generated_content', 'admin_notes', 'related_blog_post_id', 'processed_at', 'published_at'] as const) {
+      if (key in updates) {
+        fields.push(`${key} = ?`);
+        args.push((updates as any)[key] ?? null);
+      }
     }
 
-    ideas.sort((a: MessagingIdea, b: MessagingIdea) =>
-      new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
-    );
+    if (updates.status && !updates.processed_at) {
+      fields.push('processed_at = ?');
+      args.push(new Date().toISOString());
+    }
+    if (updates.status === 'published' && !updates.published_at) {
+      fields.push('published_at = ?');
+      args.push(new Date().toISOString());
+    }
 
-    return ideas;
+    args.push(id);
+    await client.execute({ sql: `UPDATE messaging_ideas SET ${fields.join(', ')} WHERE id = ?`, args });
+    return { changes: 1 };
   },
 
-  update: (id: number, updates: Partial<MessagingIdea>) => {
-    const index = db.messaging_ideas.findIndex((idea: MessagingIdea) => idea.id === id);
-    if (index !== -1) {
-      db.messaging_ideas[index] = {
-        ...db.messaging_ideas[index],
-        ...updates,
-        processed_at: updates.status && updates.status !== db.messaging_ideas[index].status
-          ? new Date().toISOString()
-          : db.messaging_ideas[index].processed_at,
-        published_at: updates.status === 'published'
-          ? new Date().toISOString()
-          : db.messaging_ideas[index].published_at
-      };
-      saveDb();
-      return { changes: 1 };
-    }
-    return { changes: 0 };
-  },
-
-  delete: (id: number) => {
-    const index = db.messaging_ideas.findIndex((idea: MessagingIdea) => idea.id === id);
-    if (index !== -1) {
-      db.messaging_ideas.splice(index, 1);
-      saveDb();
-      return { changes: 1 };
-    }
-    return { changes: 0 };
+  delete: async (id: number) => {
+    await client.execute({ sql: 'DELETE FROM messaging_ideas WHERE id = ?', args: [id] });
+    return { changes: 1 };
   },
 };
-
-// Admin Users
-export function getDb() {
-  return db;
-}
 
 export const adminDb = {
-  create: (username: string, passwordHash: string) => {
-    const id = Date.now();
-    const user = {
-      id,
-      username,
-      password_hash: passwordHash,
-      last_login: null,
-      created_at: new Date().toISOString(),
-    };
-    db.admin_users.push(user);
-    saveDb();
-    return id;
+  create: async (username: string, passwordHash: string): Promise<number> => {
+    const result = await client.execute({
+      sql: 'INSERT INTO admin_users (username, password_hash, created_at) VALUES (?, ?, ?)',
+      args: [username, passwordHash, new Date().toISOString()],
+    });
+    return Number(result.lastInsertRowid);
   },
 
-  getByUsername: (username: string) => {
-    return db.admin_users.find((user: any) => user.username === username) || null;
+  getByUsername: async (username: string) => {
+    const result = await client.execute({
+      sql: 'SELECT * FROM admin_users WHERE username = ?',
+      args: [username],
+    });
+    return (result.rows[0] as any) || null;
   },
 
-  updateLastLogin: (id: number) => {
-    const index = db.admin_users.findIndex((user: any) => user.id === id);
-    if (index !== -1) {
-      db.admin_users[index].last_login = new Date().toISOString();
-      saveDb();
-    }
+  updateLastLogin: async (id: number) => {
+    await client.execute({
+      sql: 'UPDATE admin_users SET last_login = ? WHERE id = ?',
+      args: [new Date().toISOString(), id],
+    });
   },
 };

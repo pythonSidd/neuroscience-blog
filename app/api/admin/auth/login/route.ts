@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { adminDb } from '@/lib/db';
 import { comparePassword, generateToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -14,10 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getDb();
-    const user = db.admin_users?.find((u: any) => u.username === username) as
-      | { id: number; username: string; password_hash: string; role: string; last_login: string | null }
-      | undefined;
+    const user = await adminDb.getByUsername(username);
 
     if (!user) {
       return NextResponse.json(
@@ -34,10 +31,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update last login
-    user.last_login = new Date().toISOString();
+    await adminDb.updateLastLogin(user.id);
 
-    // Generate token
     const token = generateToken({
       id: user.id,
       username: user.username,

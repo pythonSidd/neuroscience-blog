@@ -9,17 +9,14 @@ export async function GET(request: NextRequest) {
   try {
     const user = verifyAdminToken(request);
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const searchParams = request.nextUrl.searchParams;
     const platform = searchParams.get('platform') || undefined;
     const status = searchParams.get('status') || undefined;
 
-    let ideas = messagingDb.getPending(platform || undefined);
+    let ideas = await messagingDb.getPending(platform);
 
     if (status) {
       ideas = ideas.filter((idea) => idea.status === status);
@@ -39,30 +36,21 @@ export async function PATCH(request: NextRequest) {
   try {
     const user = verifyAdminToken(request);
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     const { id, status, ai_generated_title, ai_generated_content, publish = false } = body;
 
-    const idea = messagingDb.getById(id);
+    const idea = await messagingDb.getById(id);
     if (!idea) {
-      return NextResponse.json(
-        { error: 'Idea not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Idea not found' }, { status: 404 });
     }
 
     if (status === 'rejected') {
-      messagingDb.update(id, { status: 'rejected' });
-      
-      // Send rejection message via platform
-      await sendMessageToUser(idea.platform, idea.sender_id, 
+      await messagingDb.update(id, { status: 'rejected' });
+      await sendMessageToUser(idea.platform, idea.sender_id,
         '❌ Your blog idea wasn\'t approved this time. Thanks for the suggestion!');
-      
       return NextResponse.json({ success: true });
     }
 
@@ -78,7 +66,7 @@ export async function PATCH(request: NextRequest) {
       const wordCount = ai_generated_content.split(/\s+/).length;
       const readTime = Math.ceil(wordCount / 200);
 
-      const postId = blogDb.create({
+      const postId = await blogDb.create({
         title: ai_generated_title,
         slug: postSlug,
         content: ai_generated_content,
@@ -88,13 +76,12 @@ export async function PATCH(request: NextRequest) {
         read_time: readTime,
       });
 
-      messagingDb.update(id, {
+      await messagingDb.update(id, {
         status: 'published',
         published_at: new Date().toISOString(),
-        related_blog_post_id: postId as number,
+        related_blog_post_id: postId,
       });
 
-      // Send success message
       const blogUrl = `${process.env.NEXT_PUBLIC_APP_URL}/blog/${postSlug}`;
       await sendMessageToUser(idea.platform, idea.sender_id,
         `🎉 Your blog post is live!\n\nRead it here: ${blogUrl}`);
@@ -102,8 +89,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: true, postId });
     }
 
-    // Just update the content
-    messagingDb.update(id, {
+    await messagingDb.update(id, {
       ai_generated_title: ai_generated_title || idea.ai_generated_title,
       ai_generated_content: ai_generated_content || idea.ai_generated_content,
       status: status || idea.status,
@@ -119,18 +105,13 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-async function sendMessageToUser(
-  platform: string,
-  senderId: string,
-  message: string
-) {
+async function sendMessageToUser(platform: string, senderId: string, message: string) {
   try {
     if (platform === 'whatsapp') {
       const twilioClient = twilio(
         process.env.TWILIO_ACCOUNT_SID || '',
         process.env.TWILIO_AUTH_TOKEN || ''
       );
-
       await twilioClient.messages.create({
         from: process.env.TWILIO_WHATSAPP_NUMBER || '',
         to: senderId,
@@ -138,9 +119,7 @@ async function sendMessageToUser(
       });
     } else if (platform === 'telegram') {
       const botToken = process.env.TELEGRAM_BOT_TOKEN || '';
-      const telegramApiUrl = `https://api.telegram.org/bot${botToken}`;
-
-      await axios.post(`${telegramApiUrl}/sendMessage`, {
+      await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         chat_id: parseInt(senderId),
         text: message,
       });
