@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - UX Mock-up</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #5B21B6;
+            --secondary: #0369A1;
+            --accent: #EA580C;
+            --success: #10B981;
+            --dark: #1F2937;
+            --light: #F3F4F6;
+            --gray: #9CA3AF;
+            --border: #E5E7EB;
+            --whatsapp: #25D366;
+            --telegram: #0088CC;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--dark);
+            background: var(--light);
+        }
+
+        .container-admin {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--dark);
+            color: white;
+            padding: 2rem 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            margin-top: 1.5rem;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #D1D5DB;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: var(--primary);
+        }
+
+        .sidebar-nav a.active {
+            background: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+        }
+
+        .logout-btn {
+            padding: 0.5rem 1rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #D97706;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .stat-card.posts-col h3 { color: var(--secondary); }
+        .stat-card.posts-col { border-left-color: var(--secondary); }
+
+        .stat-card.drafts-col h3 { color: var(--accent); }
+        .stat-card.drafts-col { border-left-color: var(--accent); }
+
+        .stat-card.pending-col h3 { color: #F59E0B; }
+        .stat-card.pending-col { border-left-color: #F59E0B; }
+
+        /* Section Title */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1.5rem;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Messaging Ideas */
+        .ideas-container {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .idea-card {
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s;
+        }
+
+        .idea-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .idea-header {
+            padding: 1.5rem;
+            background: var(--light);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .idea-meta {
+            flex: 1;
+        }
+
+        .idea-platform {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .idea-platform.whatsapp {
+            background: #E7F8F0;
+            color: var(--whatsapp);
+        }
+
+        .idea-platform.telegram {
+            background: #E0F2FE;
+            color: var(--telegram);
+        }
+
+        .idea-info {
+            font-size: 0.885rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+
+        .idea-time {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .idea-content {
+            padding: 1.5rem;
+        }
+
+        .idea-original {
+            background: var(--light);
+            padding: 1rem;
+            border-left: 3px solid var(--gray);
+            border-radius: 0.25rem;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+            color: #555;
+        }
+
+        .idea-original-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        .generated-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .generated-preview {
+            background: white;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .expand-btn {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .idea-actions {
+            display: flex;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .btn-edit {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #0254A0;
+        }
+
+        .btn-preview {
+            background: var(--light);
+            color: var(--primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-preview:hover {
+            background: white;
+        }
+
+        .btn-publish {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-publish:hover {
+            background: #059669;
+        }
+
+        .btn-reject {
+            background: #EF4444;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #DC2626;
+        }
+
+        /* Modal Overlay (hidden by default) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container-admin {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .idea-header {
+                flex-direction: column;
+            }
+
+            .idea-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-admin">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">🧠 Admin Panel</div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="active">📊 Dashboard</a>
+                <a href="#">📝 Blog Posts</a>
+                <a href="#">✏️ Drafts</a>
+                <a href="#">💬 Messaging Ideas</a>
+                <a href="#">📄 Research Papers</a>
+                <a href="#">💻 Projects</a>
+                <a href="#">⚙️ Settings</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p style="color: var(--gray); margin-top: 0.5rem;">Welcome back! Here's your site overview.</p>
+                </div>
+                <button class="logout-btn">🚪 Logout</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>25</h3>
+                    <p>Total Blog Posts</p>
+                </div>
+                <div class="stat-card posts-col">
+                    <h3>3</h3>
+                    <p>Draft Posts</p>
+                </div>
+                <div class="stat-card drafts-col">
+                    <h3>5</h3>
+                    <p>Pending Messaging Ideas</p>
+                </div>
+                <div class="stat-card pending-col">
+                    <h3>8</h3>
+                    <p>Research Papers</p>
+                </div>
+            </div>
+
+            <!-- Messaging Ideas Section -->
+            <div style="margin-top: 3rem;">
+                <h2 class="section-title">💬 Pending Messaging Ideas</h2>
+                
+                <div class="filters">
+                    <button class="filter-btn active">All</button>
+                    <button class="filter-btn">📱 WhatsApp</button>
+                    <button class="filter-btn">✈️ Telegram</button>
+                </div>
+
+                <div class="ideas-container">
+                    <!-- Idea 1: WhatsApp -->
+                    <div class="idea-card">
+                        <div class="idea-header">
+                            <div class="idea-meta">
+                                <div>
+                                    <span class="idea-platform whatsapp">📱 WhatsApp</span>
+                                </div>
+                                <div class="idea-info">
+                                    <strong>From: +1 (555) 123-4567</strong>
+                                </div>
+                                <div class="idea-time">📅 2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="idea-content">
+                            <div class="idea-original">
+                                <div class="idea-original-label">Original Message:</div>
+                                "Write about ADHD and focus mechanisms in the brain. How does medication help? What's the neuroscience?"
+                            </div>
+
+                            <div class="generated-title">ADHD and Neural Attention: Understanding Focus Mechanisms for Better Learning</div>
+
+                            <div class="generated-preview">
+                                <p><strong>Generated Preview:</strong></p>
+                                <p style="margin-top: 0.5rem;">
+                                    Attention deficit hyperactivity disorder (ADHD) affects millions of people worldwide, yet its underlying 
+                                    neurobiology remains fascinating and complex. Recent neuroscience research reveals how specific brain regions 
+                                    and neurotransmitters regulate attention, executive function, and impulse control. In this article, we'll explore...
+                                </p>
+                            </div>
+
+                            <a href="#" class="expand-btn" onclick="showModal('idea1')">+ View Full Content</a>
+
+                            <div class="idea-actions">
+                                <button class="action-btn btn-edit" onclick="showModal('idea1')">✎ Edit</button>
+                                <button class="action-btn btn-preview">👁️ Preview</button>
+                                <button class="action-btn btn-publish" onclick="publishIdea()">✓ Publish</button>
+                                <button class="action-btn btn-reject">✕ Reject</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Idea 2: Telegram -->
+                    <div class="idea-card">
+                        <div class="idea-header">
+                            <div class="idea-meta">
+                                <div>
+                                    <span class="idea-platform telegram">✈️ Telegram</span>
+                                </div>
+                                <div class="idea-info">
+                                    <strong>From: @neuroscience_enthusiast</strong>
+                                </div>
+                                <div class="idea-time">📅 5 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="idea-content">
+                            <div class="idea-original">
+                                <div class="idea-original-label">Original Message:</div>
+                                "Can you explain mirror neurons? Are they as important as people say?"
+                            </div>
+
+                            <div class="generated-title">Mirror Neurons Explained: Myths, Facts, and Their Role in Social Cognition</div>
+
+                            <div class="generated-preview">
+                                <p><strong>Generated Preview:</strong></p>
+                                <p style="margin-top: 0.5rem;">
+                                    Mirror neurons represent one of the most exciting discoveries in neuroscience over the past two decades. 
+                                    First discovered in macaque monkeys by Rizzolatti's team in the 1990s, these specialized neurons fire both 
+                                    when an individual performs an action and when they observe someone else performing the same action...
+                                </p>
+                            </div>
+
+                            <a href="#" class="expand-btn" onclick="showModal('idea2')">+ View Full Content</a>
+
+                            <div class="idea-actions">
+                                <button class="action-btn btn-edit" onclick="showModal('idea2')">✎ Edit</button>
+                                <button class="action-btn btn-preview">👁️ Preview</button>
+                                <button class="action-btn btn-publish" onclick="publishIdea()">✓ Publish</button>
+                                <button class="action-btn btn-reject">✕ Reject</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Idea 3: WhatsApp -->
+                    <div class="idea-card">
+                        <div class="idea-header">
+                            <div class="idea-meta">
+                                <div>
+                                    <span class="idea-platform whatsapp">📱 WhatsApp</span>
+                                </div>
+                                <div class="idea-info">
+                                    <strong>From: +1 (555) 987-6543</strong>
+                                </div>
+                                <div class="idea-time">📅 8 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="idea-content">
+                            <div class="idea-original">
+                                <div class="idea-original-label">Original Message:</div>
+                                "What is the default mode network? How does it affect creativity and daydreaming?"
+                            </div>
+
+                            <div class="generated-title">The Default Mode Network: Understanding the Brain's Creative Rest State</div>
+
+                            <div class="generated-preview">
+                                <p><strong>Generated Preview:</strong></p>
+                                <p style="margin-top: 0.5rem;">
+                                    When your mind wanders during a long drive or you zone out during a boring meeting, a specific network 
+                                    of brain regions becomes active. This is the Default Mode Network (DMN), one of the most studied systems 
+                                    in modern neuroscience. Rather than being a sign of laziness or lack of focus, DMN activity correlates with...
+                                </p>
+                            </div>
+
+                            <a href="#" class="expand-btn" onclick="showModal('idea3')">+ View Full Content</a>
+
+                            <div class="idea-actions">
+                                <button class="action-btn btn-edit" onclick="showModal('idea3')">✎ Edit</button>
+                                <button class="action-btn btn-preview">👁️ Preview</button>
+                                <button class="action-btn btn-publish" onclick="publishIdea()">✓ Publish</button>
+                                <button class="action-btn btn-reject">✕ Reject</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal (Example for Idea 1) -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Blog Content</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" value="ADHD and Neural Attention: Understanding Focus Mechanisms for Better Learning">
+            </div>
+
+            <div class="form-group">
+                <label>Category:</label>
+                <select style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem;">
+                    <option>Research</option>
+                    <option>Tutorial</option>
+                    <option>Insight</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Featured Image URL:</label>
+                <input type="text" placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label>Content (Markdown):</label>
+                <textarea># ADHD and Neural Attention
+
+Attention deficit hyperactivity disorder (ADHD) affects millions worldwide...
+
+## Brain Regions Involved
+
+The prefrontal cortex plays a crucial role...
+
+## Neurotransmitters
+
+Dopamine and norepinephrine are key players...</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Tags:</label>
+                <input type="text" placeholder="adhd, neuroscience, focus, attention">
+            </div>
+
+            <div style="background: var(--light); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                <input type="checkbox" id="notifyUser"> 
+                <label for="notifyUser" style="display: inline;">✓ Notify user on WhatsApp when published</label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-preview" onclick="closeModal()" style="background: var(--light); color: var(--dark); border: 1px solid var(--border);">Cancel</button>
+                <button class="action-btn btn-publish">Save & Publish</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showModal(ideaId) {
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        function publishIdea() {
+            alert('✅ Blog published! Reply sent to user via their messaging platform.');
+            closeModal();
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

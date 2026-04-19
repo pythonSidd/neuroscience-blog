@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuroscience Blog - UX Mock-up</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #5B21B6;
+            --secondary: #0369A1;
+            --accent: #EA580C;
+            --success: #10B981;
+            --dark: #1F2937;
+            --light: #F3F4F6;
+            --gray: #9CA3AF;
+            --border: #E5E7EB;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+        }
+
+        /* Header */
+        header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        nav a {
+            margin-left: 2rem;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--secondary);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: white;
+            color: var(--dark);
+            padding: 6rem 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            color: var(--gray);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #D97706;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(234, 88, 12, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Hero Image Placeholder */
+        .hero-image {
+            margin-top: 3rem;
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Section Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .section-subtitle {
+            font-size: 1rem;
+            color: var(--gray);
+            margin-bottom: 3rem;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--light);
+            color: var(--primary);
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge.research {
+            background: #EDE9FE;
+        }
+
+        .badge.tutorial {
+            background: #DBEAFE;
+            color: var(--secondary);
+        }
+
+        .badge.insight {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+
+        .card-excerpt {
+            color: #6B7280;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .card-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .card-link:hover {
+            color: #D97706;
+        }
+
+        /* Featured Section */
+        .featured-section {
+            background: var(--light);
+        }
+
+        /* About Section */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-image {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 1rem;
+            margin: 0 auto;
+        }
+
+        .about-text h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .about-text p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+            color: #4B5563;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            nav {
+                display: none;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                padding: 1rem;
+            }
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--primary);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: var(--gray);
+        }
+
+        /* Platform Badges */
+        .platform-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .platform-badge.whatsapp {
+            border-color: #25D366;
+            color: #25D366;
+        }
+
+        .platform-badge.telegram {
+            border-color: #0088CC;
+            color: #0088CC;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">🧠 NeuroHub</div>
+            <nav>
+                <a href="#home">Home</a>
+                <a href="#blog">Blog</a>
+                <a href="#research">Research</a>
+                <a href="#projects">Projects</a>
+                <a href="#about">About</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Exploring the Brain</h1>
+            <p>A high schooler's journey into neuroscience, research, and discovery</p>
+            <div class="buttons">
+                <button class="btn-primary">📖 Read Latest Blog</button>
+                <button class="btn-secondary">🔬 Explore Research</button>
+            </div>
+            <div class="hero-image">🧠 Brain Illustration</div>
+        </div>
+    </section>
+
+    <!-- Featured Blog Posts -->
+    <section class="featured-section">
+        <div class="container">
+            <h2 class="section-title">Latest Blog Posts</h2>
+            <p class="section-subtitle">Discover insights into neuroscience, research, and AI</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-image">🧬</div>
+                    <div class="card-content">
+                        <div class="badge research">Research</div>
+                        <h3 class="card-title">Synaptic Plasticity Explained</h3>
+                        <div class="card-meta">
+                            <span>📅 Apr 10, 2026</span>
+                            <span>⏱️ 8 min read</span>
+                        </div>
+                        <p class="card-excerpt">Dive deep into how the brain changes and adapts. Synaptic plasticity is the foundation of learning and memory formation...</p>
+                        <a href="#" class="card-link">→ Read Article</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image">🧠</div>
+                    <div class="card-content">
+                        <div class="badge tutorial">Tutorial</div>
+                        <h3 class="card-title">Understanding Brain Waves</h3>
+                        <div class="card-meta">
+                            <span>📅 Apr 5, 2026</span>
+                            <span>⏱️ 6 min read</span>
+                        </div>
+                        <p class="card-excerpt">A practical guide to EEG signals and what different brain wave frequencies tell us about mental states...</p>
+                        <a href="#" class="card-link">→ Read Article</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image">💭</div>
+                    <div class="card-content">
+                        <div class="badge insight">Insight</div>
+                        <h3 class="card-title">AI & Neuroscience Convergence</h3>
+                        <div class="card-meta">
+                            <span>📅 Mar 28, 2026</span>
+                            <span>⏱️ 10 min read</span>
+                        </div>
+                        <p class="card-excerpt">Why AI researchers are increasingly inspired by biological neural networks and what we can learn...</p>
+                        <a href="#" class="card-link">→ Read Article</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Research Papers -->
+    <section>
+        <div class="container">
+            <h2 class="section-title">📄 Research Publications</h2>
+            <p class="section-subtitle">My published papers and research contributions</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-image">📚</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Neural Mechanisms of Memory Formation</h3>
+                        <div class="card-meta">
+                            <span>2025</span>
+                            <span>Journal of Neuroscience</span>
+                        </div>
+                        <p class="card-excerpt">Investigating the molecular basis of long-term memory consolidation through experimental and computational approaches...</p>
+                        <a href="#" class="card-link">📥 Download PDF</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image">📚</div>
+                    <div class="card-content">
+                        <h3 class="card-title">ADHD and Attention Networks</h3>
+                        <div class="card-meta">
+                            <span>2025</span>
+                            <span>Brain Research Review</span>
+                        </div>
+                        <p class="card-excerpt">A meta-analysis of fMRI studies examining attention network dysfunction in ADHD populations...</p>
+                        <a href="#" class="card-link">📥 Download PDF</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image">📚</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Sleep and Neuroplasticity</h3>
+                        <div class="card-meta">
+                            <span>2024</span>
+                            <span>Sleep Science Quarterly</span>
+                        </div>
+                        <p class="card-excerpt">Exploring the role of REM and NREM sleep stages in synaptic pruning and memory consolidation...</p>
+                        <a href="#" class="card-link">📥 Download PDF</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GitHub Projects -->
+    <section style="background: var(--light);">
+        <div class="container">
+            <h2 class="section-title">💻 GitHub Projects</h2>
+            <p class="section-subtitle">Open-source projects and code repositories</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-image">🐍</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Neurotransmitter Simulator</h3>
+                        <div class="card-meta">
+                            <span>Python • PyTorch</span>
+                            <span>⭐ 45 stars</span>
+                        </div>
+                        <p class="card-excerpt">Simulate neural signal transmission with realistic neurotransmitter dynamics and learning rules...</p>
+                        <a href="#" class="card-link">→ View on GitHub</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image">📊</div>
+                    <div class="card-content">
+                        <h3 class="card-title">EEG Analysis Toolkit</h3>
+                        <div class="card-meta">
+                            <span>Python • Jupyter</span>
+                            <span>⭐ 28 stars</span>
+                        </div>
+                        <p class="card-excerpt">Comprehensive toolkit for analyzing and visualizing EEG data with spectral analysis and component extraction...</p>
+                        <a href="#" class="card-link">→ View on GitHub</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image">🧠</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Brain Atlas Visualizer</h3>
+                        <div class="card-meta">
+                            <span>JavaScript • Three.js</span>
+                            <span>⭐ 15 stars</span>
+                        </div>
+                        <p class="card-excerpt">Interactive 3D brain atlas with region-specific information, connectivity visualization, and educational features...</p>
+                        <a href="#" class="card-link">→ View on GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section style="background: var(--light);">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-image"></div>
+                <div class="about-text">
+                    <h2>About Me</h2>
+                    <p>
+                        I'm a high school student deeply passionate about neuroscience, brain research, and the intersection of AI and biology. 
+                        Through this platform, I share my learning journey, research insights, and coding projects.
+                    </p>
+                    <p>
+                        My interests span from synaptic plasticity and memory to AI-powered brain analysis. I'm constantly exploring new 
+                        research, contributing to open-source projects, and writing about discoveries in neuroscience.
+                    </p>
+                    <button class="btn-primary">Learn More →</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section>
+        <div class="container">
+            <h2 class="section-title" style="text-align: center; margin-bottom: 3rem;">By the Numbers</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>25+</h3>
+                    <p>Blog Posts Published</p>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--secondary);">
+                    <h3 style="color: var(--secondary);">8</h3>
+                    <p>Research Papers</p>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--accent);">
+                    <h3 style="color: var(--accent);">15+</h3>
+                    <p>GitHub Projects</p>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--success);">
+                    <h3 style="color: var(--success);">1000+</h3>
+                    <p>Monthly Visitors</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#">GitHub</a>
+                <a href="#">LinkedIn</a>
+                <a href="#">Twitter</a>
+                <a href="#">Email</a>
+            </div>
+            <p>© 2026 NeuroHub | All rights reserved | Exploring neuroscience, one blog post at a time</p>
+        </div>
+    </footer>
+</body>
+</html>

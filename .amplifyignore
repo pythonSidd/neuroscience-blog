@@ -1,0 +1,30 @@
+# Amplify-specific ignore file
+# Files and directories to exclude from deployment
+
+.git
+.gitignore
+node_modules
+npm-debug.log
+yarn-error.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Development files
+.next/cache
+.eslintcache
+tsconfig.json.bak
+
+# Mock files (for development only)
+mock-admin.html
+mock-landing.html
+
+# Documentation
+DESIGN.md
+WIREFRAMES.md
+README.md
+
+# OS files
+Thumbs.db
