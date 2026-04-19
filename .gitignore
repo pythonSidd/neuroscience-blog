@@ -38,7 +38,7 @@ logs
 .turbo
 
 # Amplify
-amplify*
+.amplify/
 .amplifyrc.json
 
 # Database snapshots

@@ -1,0 +1,24 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "Installing dependencies..."
+        - npm install
+        - echo "Running database migration..."
+        - npm run migrate || echo "Migration skipped or already up to date"
+    build:
+      commands:
+        - echo "Building Next.js application..."
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
+  env:
+    NEXT_PUBLIC_APP_NAME: "Neuroscience Blog"
+    NEXT_PUBLIC_APP_URL: "https://neuronarrat.com"
