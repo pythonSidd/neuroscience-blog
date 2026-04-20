@@ -1,17 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable static generation and streaming for Amplify
   reactStrictMode: true,
-  swcMinify: true,
-  
-  // Image optimization for serverless
+
   images: {
-    unoptimized: true, // Recommended for serverless deployments
+    unoptimized: true,
   },
-  
-  // Optimize for production builds
+
   compress: true,
   productionBrowserSourceMaps: false,
+
+  serverRuntimeConfig: {
+    TURSO_CONNECTION_URL: process.env.TURSO_CONNECTION_URL,
+    TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN,
+    JWT_SECRET: process.env.JWT_SECRET,
+    ADMIN_USERNAME: process.env.ADMIN_USERNAME,
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+  },
 };
 
 module.exports = nextConfig;

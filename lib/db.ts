@@ -1,16 +1,17 @@
 import { createClient, Client } from '@libsql/client';
+import getConfig from 'next/config';
 
 let _client: Client | null = null;
 
 function getClient(): Client {
   if (!_client) {
-    if (!process.env.TURSO_CONNECTION_URL) {
-      throw new Error('TURSO_CONNECTION_URL is not set');
-    }
-    _client = createClient({
-      url: process.env.TURSO_CONNECTION_URL,
-      authToken: process.env.TURSO_AUTH_TOKEN,
-    });
+    const { serverRuntimeConfig = {} } = getConfig() || {};
+    const url = serverRuntimeConfig.TURSO_CONNECTION_URL || process.env.TURSO_CONNECTION_URL;
+    const authToken = serverRuntimeConfig.TURSO_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
+
+    if (!url) throw new Error('TURSO_CONNECTION_URL is not set');
+
+    _client = createClient({ url, authToken });
   }
   return _client;
 }

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@libsql/client';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const checks: Record<string, any> = {
     turso_url_set: !!process.env.TURSO_CONNECTION_URL,
