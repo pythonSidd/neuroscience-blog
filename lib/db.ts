@@ -1,9 +1,19 @@
-import { createClient } from '@libsql/client';
+import { createClient, Client } from '@libsql/client';
 
-const client = createClient({
-  url: process.env.TURSO_CONNECTION_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
+let _client: Client | null = null;
+
+function getClient(): Client {
+  if (!_client) {
+    if (!process.env.TURSO_CONNECTION_URL) {
+      throw new Error('TURSO_CONNECTION_URL is not set');
+    }
+    _client = createClient({
+      url: process.env.TURSO_CONNECTION_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
+  }
+  return _client;
+}
 
 export interface BlogPost {
   id?: number;
@@ -42,7 +52,7 @@ export interface MessagingIdea {
 export const blogDb = {
   create: async (post: BlogPost): Promise<number> => {
     const now = new Date().toISOString();
-    const result = await client.execute({
+    const result = await getClient().execute({
       sql: `INSERT INTO blog_posts
               (title, slug, content, excerpt, featured_image_url, category, status, author, read_time, tags, created_at, published_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -66,7 +76,7 @@ export const blogDb = {
   },
 
   getBySlug: async (slug: string): Promise<BlogPost | null> => {
-    const result = await client.execute({
+    const result = await getClient().execute({
       sql: 'SELECT * FROM blog_posts WHERE slug = ?',
       args: [slug],
     });
@@ -85,7 +95,7 @@ export const blogDb = {
     sql += ' ORDER BY COALESCE(published_at, created_at) DESC LIMIT ? OFFSET ?';
     args.push(limit, offset);
 
-    const result = await client.execute({ sql, args });
+    const result = await getClient().execute({ sql, args });
     return result.rows as unknown as BlogPost[];
   },
 
@@ -103,12 +113,12 @@ export const blogDb = {
     fields.push('updated_at = ?');
     args.push(now, id);
 
-    await client.execute({ sql: `UPDATE blog_posts SET ${fields.join(', ')} WHERE id = ?`, args });
+    await getClient().execute({ sql: `UPDATE blog_posts SET ${fields.join(', ')} WHERE id = ?`, args });
     return { changes: 1 };
   },
 
   getById: async (id: number): Promise<BlogPost | null> => {
-    const result = await client.execute({
+    const result = await getClient().execute({
       sql: 'SELECT * FROM blog_posts WHERE id = ?',
       args: [id],
     });
@@ -116,12 +126,12 @@ export const blogDb = {
   },
 
   delete: async (id: number) => {
-    await client.execute({ sql: 'DELETE FROM blog_posts WHERE id = ?', args: [id] });
+    await getClient().execute({ sql: 'DELETE FROM blog_posts WHERE id = ?', args: [id] });
     return { changes: 1 };
   },
 
   count: async (status = 'published'): Promise<number> => {
-    const result = await client.execute({
+    const result = await getClient().execute({
       sql: 'SELECT COUNT(*) as count FROM blog_posts WHERE status = ?',
       args: [status],
     });
@@ -132,7 +142,7 @@ export const blogDb = {
 export const messagingDb = {
   create: async (idea: MessagingIdea): Promise<number> => {
     const now = new Date().toISOString();
-    const result = await client.execute({
+    const result = await getClient().execute({
       sql: `INSERT INTO messaging_ideas
               (platform, platform_message_id, sender_id, sender_name, original_message, status,
                ai_generated_title, ai_generated_content, admin_notes, related_blog_post_id,
@@ -158,7 +168,7 @@ export const messagingDb = {
   },
 
   getById: async (id: number): Promise<MessagingIdea | null> => {
-    const result = await client.execute({
+    const result = await getClient().execute({
       sql: 'SELECT * FROM messaging_ideas WHERE id = ?',
       args: [id],
     });
@@ -170,7 +180,7 @@ export const messagingDb = {
     let sql = "SELECT * FROM messaging_ideas WHERE status IN ('pending_ai_generation', 'pending_review')";
     if (platform) { sql += ' AND platform = ?'; args.push(platform); }
     sql += ' ORDER BY created_at DESC';
-    const result = await client.execute({ sql, args });
+    const result = await getClient().execute({ sql, args });
     return result.rows as unknown as MessagingIdea[];
   },
 
@@ -195,19 +205,19 @@ export const messagingDb = {
     }
 
     args.push(id);
-    await client.execute({ sql: `UPDATE messaging_ideas SET ${fields.join(', ')} WHERE id = ?`, args });
+    await getClient().execute({ sql: `UPDATE messaging_ideas SET ${fields.join(', ')} WHERE id = ?`, args });
     return { changes: 1 };
   },
 
   delete: async (id: number) => {
-    await client.execute({ sql: 'DELETE FROM messaging_ideas WHERE id = ?', args: [id] });
+    await getClient().execute({ sql: 'DELETE FROM messaging_ideas WHERE id = ?', args: [id] });
     return { changes: 1 };
   },
 };
 
 export const adminDb = {
   create: async (username: string, passwordHash: string): Promise<number> => {
-    const result = await client.execute({
+    const result = await getClient().execute({
       sql: 'INSERT INTO admin_users (username, password_hash, created_at) VALUES (?, ?, ?)',
       args: [username, passwordHash, new Date().toISOString()],
     });
@@ -215,7 +225,7 @@ export const adminDb = {
   },
 
   getByUsername: async (username: string) => {
-    const result = await client.execute({
+    const result = await getClient().execute({
       sql: 'SELECT * FROM admin_users WHERE username = ?',
       args: [username],
     });
@@ -223,7 +233,7 @@ export const adminDb = {
   },
 
   updateLastLogin: async (id: number) => {
-    await client.execute({
+    await getClient().execute({
       sql: 'UPDATE admin_users SET last_login = ? WHERE id = ?',
       args: [new Date().toISOString(), id],
     });
