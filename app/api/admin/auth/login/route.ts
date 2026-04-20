@@ -31,20 +31,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await adminDb.updateLastLogin(user.id);
+    const userId = Number(user.id);
+    await adminDb.updateLastLogin(userId);
 
     const token = generateToken({
-      id: user.id,
+      id: userId,
       username: user.username,
-      role: user.role,
+      role: user.role || 'admin',
     });
 
     return NextResponse.json({
       token,
       user: {
-        id: user.id,
+        id: userId,
         username: user.username,
-        role: user.role,
+        role: user.role || 'admin',
       },
     });
   } catch (error) {
