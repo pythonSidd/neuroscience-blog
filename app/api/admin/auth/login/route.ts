@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
         role: user.role || 'admin',
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', detail: error?.message },
       { status: 500 }
     );
   }
